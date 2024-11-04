@@ -35,7 +35,8 @@ def count():
 ######################################################################
 @app.route("/picture", methods=["GET"])
 def get_pictures():
-    pass
+    res = make_response((data, 200,))
+    return res
 
 ######################################################################
 # GET A PICTURE
@@ -44,7 +45,15 @@ def get_pictures():
 
 @app.route("/picture/<int:id>", methods=["GET"])
 def get_picture_by_id(id):
-    pass
+    res = make_response()
+    try:
+        ind = [item["id"] for item in data].index(id)
+        res.data = json.dumps(data[int(ind)])
+        res.mimetype = "application/json"
+        res.status = "200"
+    except (ValueError, IndexError) as e:
+        res.status = "404"
+    return res
 
 
 ######################################################################
@@ -52,7 +61,19 @@ def get_picture_by_id(id):
 ######################################################################
 @app.route("/picture", methods=["POST"])
 def create_picture():
-    pass
+    res = make_response()
+    res.mimetype = "application/json"
+    print(request.json)
+    try:
+        id = request.json["id"]
+        [item["id"] for item in data].index(id)
+        res.status = 302
+        res.data = json.dumps({'Message':f"picture with id {id} already present"})
+    except (ValueError) as e:
+        data.append(request.json)
+        res.data = json.dumps(request.json)
+        res.status = 201
+    return res
 
 ######################################################################
 # UPDATE A PICTURE
@@ -61,11 +82,28 @@ def create_picture():
 
 @app.route("/picture/<int:id>", methods=["PUT"])
 def update_picture(id):
-    pass
+    res = make_response()
+    try:
+        ind = [item["id"] for item in data].index(id)
+        data[ind] = request.json
+        res.data = data[ind]
+        res.status = 200
+    except ValueError:
+        res.status = 404
+    return res
 
 ######################################################################
 # DELETE A PICTURE
 ######################################################################
 @app.route("/picture/<int:id>", methods=["DELETE"])
 def delete_picture(id):
-    pass
+    res = make_response()
+    try:
+        ind = [item["id"] for item in data].index(id)
+        res.data = data[ind]
+        data.remove(data[ind])
+        res.status = 204
+    except ValueError:
+        res.data = json.dumps({"message": "picture not found"})
+        res.status = 404
+    return res
